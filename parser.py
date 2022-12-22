@@ -1,7 +1,7 @@
 import PyPDF2
 from calendar_writer import write_event
 
-file = open('ZSSK_ITD_20221222183857.pdf', 'rb')
+file = open('sample_tickets/ZSSK_ITD_20221222183857.pdf', 'rb')
 # file = open('ZSSK_ITD_20220819104454.pdf', 'rb')
 
 pdfReader = PyPDF2.PdfFileReader(file)
