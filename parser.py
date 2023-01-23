@@ -1,7 +1,7 @@
 import PyPDF2
 from calendar_writer import write_event
 
-file = open('sample_tickets/ZSSK_ITD_20221222183857.pdf', 'rb')
+file = open('sample_tickets/tt-pp.pdf', 'rb')
 # file = open('ZSSK_ITD_20220819104454.pdf', 'rb')
 
 pdfReader = PyPDF2.PdfFileReader(file)
@@ -10,7 +10,7 @@ pageObj = pdfReader.getPage(0)
 with open("text.txt", "w") as w:
     w.write(pageObj.extract_text())
 
-train_names = {"os", "r", "rr", "rex", "ex"}
+train_names = {"os", "r", "rr", "rex", "ex", "ic", "ec"}
 tr_name_w_sep = set([i + " " for i in train_names])
 
 class Event:
@@ -48,8 +48,8 @@ def is_date(s):
     try: s = list(map(int, s))
     except: return False
 
-    if not (1 < s[0] <= 31): return False
-    if not (1 < s[1] <= 12): return False
+    if not (0 < s[0] <= 31): return False
+    if not (0 < s[1] <= 12): return False
     if not (0 < s[2] <= 100): return False
 
     return True
@@ -65,7 +65,7 @@ def is_time(s):
         return False
 
     if not (0 < s[0] < 24): return False
-    if not (0 < s[1] < 60): return False
+    if not (0 <= s[1] < 60): return False
 
     return True
 
@@ -120,8 +120,9 @@ with open("text.txt", "r") as r:
             for tr in tr_name_w_sep:
                 if tr in line.lower():
                     pos = line.lower().index(tr)
-                    #print(line[pos:].split())
+                    # print(line[pos:].split())
                     record = parse_record(line[pos:].split())
+                    # print(record)
                     if record.train_type != "":
                         # print(record)
                         write_event(record)
