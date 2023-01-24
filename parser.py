@@ -1,5 +1,6 @@
 import PyPDF2
 from calendar_writer import write_event
+import re
 
 file = open('sample_tickets/tt-pp.pdf', 'rb')
 # file = open('ZSSK_ITD_20220819104454.pdf', 'rb')
@@ -75,57 +76,39 @@ def parse_record(rec):
 
     event = Event()
 
-    ind = 0
+    event.train_type = rec["type"]
 
-    event.train_type = rec[ind]
-    ind += 1
+    if not is_date(rec["from_date"]): return Event()
+    event.start_date = rec["from_date"]
 
-    if not is_date(rec[ind]): return Event()
-    event.start_date = rec[ind]
-    ind += 1
+    if not is_time(rec["from_time"]): return Event()
+    event.start_time = rec["from_time"]
 
-    if not is_time(rec[ind]): return Event()
-    event.start_time = rec[ind]
-    ind += 1
+    event.start_station = rec["from_stat"]
 
-    while not is_date(rec[ind]):
-        if event.start_station != "" : event.start_station += " "
-        event.start_station += rec[ind]
-        ind += 1
+    if not is_date(rec["to_date"]): return Event()
+    event.end_date = rec["to_date"]
 
-    if not is_date(rec[ind]): return Event()
-    event.end_date = rec[ind]
-    ind += 1
+    if not is_time(rec["to_time"]): return Event()
+    event.end_time = rec["to_time"]
 
-    if not is_time(rec[ind]): return Event()
-    event.end_time = rec[ind]
-    ind += 1
+    event.end_station += rec["to_stat"]
 
-    while ind < len(rec):
-
-        # train number after station name
-        try:
-            int(rec[ind])
-            break
-        except: pass
-
-        if event.end_station != "" : event.end_station += " "
-        event.end_station += rec[ind]
-        ind += 1
     return event
 
 with open("text.txt", "r") as r:
     for line in r:
-        if any([tr in line.lower() for tr in tr_name_w_sep]):
-            for tr in tr_name_w_sep:
-                if tr in line.lower():
-                    pos = line.lower().index(tr)
-                    # print(line[pos:].split())
-                    record = parse_record(line[pos:].split())
-                    # print(record)
-                    if record.train_type != "":
-                        # print(record)
-                        write_event(record)
-                    break
+
+        #print(re.search(".* [ex | os] .* [0-9]{1,2}.[0-9]{1,2}.[0-9]{1,4}.", line))
+        x = re.finditer(
+            "(?P<type>Ex|Os) (?P<from_date>[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,4}) "
+            "(?P<from_time>[0-9]{1,2}:[0-9]{1,2}) (?P<from_stat>.*) "
+            "(?P<to_date>[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,4}) "
+            "(?P<to_time>[0-9]{1,2}:[0-9]{1,2}) (?P<to_stat>[^\.\*0-9]*)", line)
+        for match in x:
+            record = parse_record(match.groupdict())
+            if record.train_type != "":
+                #print(record)
+                write_event(record)
 
 file.close()
